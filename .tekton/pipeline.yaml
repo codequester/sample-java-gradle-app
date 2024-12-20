@@ -1,6 +1,6 @@
 ---
 # Tekton Pipeline for Gradle Spring Boot Application
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: app-pl
@@ -38,25 +38,28 @@ spec:
           workspace: output
       runAfter:
         - gradle-build     
-    # - name: docker-build
-    #   taskRef:
-    #     name: docker-build-task
-    #   workspaces:
-    #     - name: appsrc
-    #       workspace: output
-    #   runAfter:
-    #     - gradle-build          
 
-    # # Task 4: Push the Docker image to Docker Registry
-    # - name: docker-push
+    # Task 4: Deploy image
+    - name: deploy-image
+      taskRef:
+        name: helm-install-task
+      params:
+        - name: release-name
+          value: "$(inputs.params.release-name)"
+      workspaces:
+        - name: chart-workspace
+          workspace: output
+      runAfter:
+        - build-push              
+    # - name: deploy-image
     #   taskRef:
-    #     name: docker-push-task
+    #     name: deploy-image-task
     #   params:
+    #     - name: appname
+    #       value: "sample-java-gradle-app"
     #     - name: image
-    #       value: "shankar29/sample-java-gradle-app:latest" #"your-docker-registry/your-app:${GIT_COMMIT}"  # Specify your Docker registry and image tag
-    #   workspaces:
-    #     - name: docker-push
-    #       workspace: shared-data
-    #   runAfter:
-    #     - docker-build          
-
+    #       value: "docker.io/shankar29/sample-java-gradle-app:latest"
+    #     - name: namespace
+    #       value: "sample-app"
+    #     - name: container-port
+    #       value: "8081"

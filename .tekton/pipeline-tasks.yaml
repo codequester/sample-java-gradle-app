@@ -1,6 +1,6 @@
 ---
 # Task 1: Git Clone Task to checkout the code
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: git-clone
@@ -30,7 +30,7 @@ spec:
 
 ---
 # Task 2: Gradle Build Task
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: gradle-build-task
@@ -66,7 +66,7 @@ spec:
 
 ---
 # Task 3: Docker Build Task
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: buildah
@@ -101,10 +101,7 @@ spec:
       image: quay.io/buildah/stable:v1.38.0
       workingDir: $(workspaces.source.path)
       script: |
-        echo ${USERNAME}
-        echo ${PASSWORD}
-        CREDS="--creds ${USERNAME}:${PASSWORD}"
-        buildah push --storage-driver=$(params.STORAGE_DRIVER) ${CREDS} docker.io/shankar29/$(params.IMAGE)
+        buildah push ${CREDS} docker.io/shankar29/$(params.IMAGE)
       volumeMounts:
         - name: varlibcontainers
           mountPath: /var/lib/containers
@@ -124,64 +121,3 @@ spec:
   volumes:
     - name: varlibcontainers
       emptyDir: {}
-
-
-
-# apiVersion: tekton.dev/v1beta1
-# kind: Task
-# metadata:
-#   name: docker-build-task
-# spec:
-#   workspaces:
-#     - name: appsrc
-#   params:app-pr-docker-build-pod
-#     - name: image
-#       description: The name of the Docker image
-#       default: "sample-java-gradle-app:latest"  # You can replace this with the dynamic tag    
-#   steps:
-#     - name: build-image
-#       image: gcr.io/cloud-builders/docker  # Docker build image
-#       workingDir: $(workspaces.appsrc.path)
-#       script: |
-#         #!/usr/bin/env bash
-#         pwd
-#         ls -al
-#         cat ./Dockerfile
-#         echo "Strarting image build"
-#         docker build -t $(inputs.params.image) .
-#       # command:
-#       #   - "./gradlew"
-#       #   - "build"  # Command to build the application      
-#       # command:
-#       #   - "docker"
-#       #   - "build"
-#       #   - "-t"
-#       #   - "$(inputs.params.image)"
-#       #  - "."  # Dockerfile is expected to be in the root directory
-#       # volumeMounts:
-#       #   - name: shared-data
-#       #     mountPath: /workspace/shared-data
-
-# ---
-# # Task 4: Docker Push Task
-# apiVersion: tekton.dev/v1beta1
-# kind: Task
-# metadata:
-#   name: docker-push-task
-# spec:
-#   workspaces:
-#     - name: docker-push
-#   params:
-#     - name: image
-#       description: Image name and tag
-#   steps:
-#     - name: push-image
-#       image: gcr.io/cloud-builders/docker  # Docker image push
-#       command:
-#         - "docker"
-#         - "push"
-#         - "$(inputs.params.image)"  # Use the image parameter passed from the previous task
-#       volumeMounts:
-#         - name: shared-data
-#           mountPath: /workspace/shared-data
-          

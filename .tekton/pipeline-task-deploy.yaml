@@ -1,0 +1,74 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: helm-install-task
+spec:
+  params:
+    - name: release-name
+      description: Helm release name
+      type: string
+  steps:
+    - name: install-helm-chart
+      image: alpine/helm:3.6.3  # Choose the version you need
+      script: |
+        #!/bin/sh
+        pwd
+        ls -al $(workspaces.chart-workspace.path)
+        echo "Starting helm"            
+      # command:
+      #   - helm
+      #   - install
+      #   - "$(inputs.params.release-name)"
+      #   - "$(workspaces.chart-workspace.path)"
+      #   - "-f"
+      #   - "$(workspaces.chart-workspace.path)/values.yaml"
+  workspaces:
+    - name: chart-workspace        
+
+
+
+
+
+
+
+# apiVersion: tekton.dev/v1
+# kind: Task
+# metadata:
+#   name: deploy-image-task
+# spec:
+#   params:
+#     - name: appname
+#       description: The name of the application
+#     - name: image
+#       description: The image name to deploy
+#     - name: namespace
+#       description: Kubernetes namespace to deploy to
+#     - name: container-port
+#       description: The port that container app listens on
+#   steps:
+#     - name: deploy
+#       image: bitnami/kubectl
+#       command:
+#         - kubectl apply -f - <<EOF
+#           apiVersion: apps/v1
+#           kind: Deployment
+#           metadata:
+#             name: $(inputs.params.appname)
+#             namespace: $(inputs.params.namespace)
+#           spec:
+#             replicas: 1
+#             selector:
+#               matchLabels:
+#                 app: $(inputs.params.appname)
+#             template:
+#               metadata:
+#                 labels:
+#                   app: $(inputs.params.appname)
+#               spec:
+#                 containers:
+#                   - name: $(inputs.params.appname)
+#                     image: $(inputs.params.image)
+#                     ports:
+#                       - containerPort: $(inputs.params.container-port)
+#           EOF
+
