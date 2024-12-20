@@ -10,19 +10,20 @@ spec:
   steps:
     - name: install-helm-chart
       image: alpine/helm:3.6.3  # Choose the version you need
-      script: |
-        #!/bin/sh
-        pwd
-        ls -al $(workspaces.chart-workspace.path)/charts/sample-java-gradle-app
-        echo "Starting helm"            
-        helm install $(inputs.params.release-name) $(workspaces.chart-workspace.path)/charts/sample-java-gradle-app
-      # command:
-      #   - helm
-      #   - install
-      #   - "$(inputs.params.release-name)"
-      #   - "$(workspaces.chart-workspace.path)"
-      #   - "-f"
-      #   - "$(workspaces.chart-workspace.path)/values.yaml"
+      # script: |
+      #   #!/bin/sh
+      #   pwd
+      #   ls -al $(workspaces.chart-workspace.path)/charts/sample-java-gradle-app
+      #   echo "Starting helm"            
+      #   helm install $(inputs.params.release-name) $(workspaces.chart-workspace.path)/charts/sample-java-gradle-app
+      command:
+        - helm
+        - upgrade #install
+        - "$(inputs.params.release-name)"
+        - "$(workspaces.chart-workspace.path)/charts/sample-java-gradle-app"      
+        # - "-f"
+        # - "$(workspaces.chart-workspace.path)/values.yaml"
+        - --install
   workspaces:
     - name: chart-workspace        
 
