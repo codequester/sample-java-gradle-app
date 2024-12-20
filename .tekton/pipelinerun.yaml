@@ -4,10 +4,7 @@ metadata:
   name: app-pr
 spec:
   pipelineRef:
-    name: app-pl
-  params:
-    - name: release-name
-      value: "sample-java-gradle-app"  # Set your Helm release name    
+    name: app-pl   
   workspaces:
     - name: output
       persistentVolumeClaim:
