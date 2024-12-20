@@ -45,7 +45,7 @@ spec:
         name: helm-install-task
       params:
         - name: release-name
-          value: "$(inputs.params.release-name)"
+          value: "sample-java-gradle-app"   
       workspaces:
         - name: chart-workspace
           workspace: output

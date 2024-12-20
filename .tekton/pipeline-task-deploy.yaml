@@ -13,8 +13,9 @@ spec:
       script: |
         #!/bin/sh
         pwd
-        ls -al $(workspaces.chart-workspace.path)
+        ls -al $(workspaces.chart-workspace.path)/charts/sample-java-gradle-app
         echo "Starting helm"            
+        helm install $(inputs.params.release-name) $(workspaces.chart-workspace.path)/charts/sample-java-gradle-app
       # command:
       #   - helm
       #   - install

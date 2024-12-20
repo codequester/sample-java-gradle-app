@@ -4,6 +4,8 @@
 
 replicaCount: 1
 
+namespace: sample-app
+
 image:
   repository: docker.io/shankar29/sample-java-gradle-app
   pullPolicy: IfNotPresent
