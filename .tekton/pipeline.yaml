@@ -1,0 +1,62 @@
+---
+# Tekton Pipeline for Gradle Spring Boot Application
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: app-pl
+spec:
+  workspaces:
+    - name: output #shared-data  # Shared workspace for passing artifacts between tasks
+  tasks:
+    # Task 1: Checkout code from GitHub
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      params:
+        - name: url
+          value: "https://github.com/codequester/sample-java-gradle-app.git"
+      workspaces:
+        - name: appsrc
+          workspace: output
+
+    # Task 2: Build the Spring Boot application using Gradle
+    - name: gradle-build
+      taskRef:
+        name: gradle-build-task
+      workspaces:
+        - name: appsrc
+          workspace: output
+      runAfter:
+        - git-clone          
+
+    # Task 3: Build and Push the Docker image
+    - name: build-push
+      taskRef:
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: output
+      runAfter:
+        - gradle-build     
+    # - name: docker-build
+    #   taskRef:
+    #     name: docker-build-task
+    #   workspaces:
+    #     - name: appsrc
+    #       workspace: output
+    #   runAfter:
+    #     - gradle-build          
+
+    # # Task 4: Push the Docker image to Docker Registry
+    # - name: docker-push
+    #   taskRef:
+    #     name: docker-push-task
+    #   params:
+    #     - name: image
+    #       value: "shankar29/sample-java-gradle-app:latest" #"your-docker-registry/your-app:${GIT_COMMIT}"  # Specify your Docker registry and image tag
+    #   workspaces:
+    #     - name: docker-push
+    #       workspace: shared-data
+    #   runAfter:
+    #     - docker-build          
+

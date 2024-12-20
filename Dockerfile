@@ -16,7 +16,7 @@
 # RUN ./gradlew clean build
 
 # Use an OpenJDK base image to run the app
-FROM openjdk:17.0.1-jdk-slim
+FROM docker.io/openjdk:17.0.1-jdk-slim
 
 # Copy the built JAR file from the builder image
 COPY  build/libs/sample-java-gradle-app.jar /app/app.jar

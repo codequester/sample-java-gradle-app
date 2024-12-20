@@ -1,0 +1,187 @@
+---
+# Task 1: Git Clone Task to checkout the code
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: git-clone
+spec:
+  # params:
+  #   - name: url
+  #     description: git url
+  #     type: string
+  #   - name: branch
+  #     description: git branch
+  #     type: string
+  #     default: main 
+  steps:
+    - name: clone
+      image: alpine/git
+      # git clone  --branch $(inputs.params.branch) $(inputs.params.url) $(workspaces.appsrc.path)
+      script: |
+        #!/bin/sh
+        rm -rfv ./*
+        rm -rf .*
+        git clone $(inputs.params.url) $(workspaces.appsrc.path)
+        pwd
+        ls -al
+      workingDir: $(workspaces.appsrc.path)
+  workspaces:
+    - name: appsrc        
+
+---
+# Task 2: Gradle Build Task
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: gradle-build-task
+spec:
+  workspaces:
+    - name: appsrc
+  steps:
+    - name: gradle-build
+      image: gradle:8.11-jdk17
+      env:
+        - name: GRADLE_USER_HOME
+          value: /home/gradle
+      workingDir: $(workspaces.appsrc.path) #/workspace/shared-data  # Mount workspace in the task
+      script: |
+        #!/usr/bin/env bash
+        pwd
+        ls -al
+        chmod +x gradle
+        echo "Starting Gradle clean"
+        ./gradlew clean
+        eval "Starting Gradle Build"
+        ./gradlew build
+        ls -ltr build/libs
+      # command:
+      #   - "./gradlew"
+      #   - "build"  # Command to build the application
+      volumeMounts:
+        - name: build-vol
+          mountPath: /home/gradle
+  volumes:
+    - name: build-vol
+      emptyDir: {}
+
+---
+# Task 3: Docker Build Task
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: buildah
+spec:
+  params:
+    - name: IMAGE
+      description: Reference of the image buildah will produce.
+      default: "sample-java-gradle-app:latest"      
+    - name: STORAGE_DRIVER
+      description: Set buildah storage driver
+      default: overlay
+    - name: DOCKERFILE
+      description: Path to the Dockerfile to build.
+      default: ./Dockerfile
+    - name: IMAGE_PUSH_SECRET_NAME
+      description: Kubernetes secrets contain image push username and password
+      default: reg-secret
+  workspaces:
+    - name: source
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:v1.38.0
+      workingDir: $(workspaces.source.path)
+      script: |
+        buildah bud --no-cache -f $(params.DOCKERFILE) -t docker.io/shankar29/$(params.IMAGE) .
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+      securityContext:
+        privileged: true
+    - name: push
+      image: quay.io/buildah/stable:v1.38.0
+      workingDir: $(workspaces.source.path)
+      script: |
+        echo ${USERNAME}
+        echo ${PASSWORD}
+        CREDS="--creds ${USERNAME}:${PASSWORD}"
+        buildah push --storage-driver=$(params.STORAGE_DRIVER) ${CREDS} docker.io/shankar29/$(params.IMAGE)
+      volumeMounts:
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
+      securityContext:
+        privileged: true
+      env:
+        - name: USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: $(params.IMAGE_PUSH_SECRET_NAME)
+              key: username
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: $(params.IMAGE_PUSH_SECRET_NAME)
+              key: password
+  volumes:
+    - name: varlibcontainers
+      emptyDir: {}
+
+
+
+# apiVersion: tekton.dev/v1beta1
+# kind: Task
+# metadata:
+#   name: docker-build-task
+# spec:
+#   workspaces:
+#     - name: appsrc
+#   params:app-pr-docker-build-pod
+#     - name: image
+#       description: The name of the Docker image
+#       default: "sample-java-gradle-app:latest"  # You can replace this with the dynamic tag    
+#   steps:
+#     - name: build-image
+#       image: gcr.io/cloud-builders/docker  # Docker build image
+#       workingDir: $(workspaces.appsrc.path)
+#       script: |
+#         #!/usr/bin/env bash
+#         pwd
+#         ls -al
+#         cat ./Dockerfile
+#         echo "Strarting image build"
+#         docker build -t $(inputs.params.image) .
+#       # command:
+#       #   - "./gradlew"
+#       #   - "build"  # Command to build the application      
+#       # command:
+#       #   - "docker"
+#       #   - "build"
+#       #   - "-t"
+#       #   - "$(inputs.params.image)"
+#       #  - "."  # Dockerfile is expected to be in the root directory
+#       # volumeMounts:
+#       #   - name: shared-data
+#       #     mountPath: /workspace/shared-data
+
+# ---
+# # Task 4: Docker Push Task
+# apiVersion: tekton.dev/v1beta1
+# kind: Task
+# metadata:
+#   name: docker-push-task
+# spec:
+#   workspaces:
+#     - name: docker-push
+#   params:
+#     - name: image
+#       description: Image name and tag
+#   steps:
+#     - name: push-image
+#       image: gcr.io/cloud-builders/docker  # Docker image push
+#       command:
+#         - "docker"
+#         - "push"
+#         - "$(inputs.params.image)"  # Use the image parameter passed from the previous task
+#       volumeMounts:
+#         - name: shared-data
+#           mountPath: /workspace/shared-data
+          

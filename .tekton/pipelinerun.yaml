@@ -1,0 +1,14 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: app-pr
+spec:
+  pipelineRef:
+    name: app-pl
+  workspaces:
+    - name: output
+      persistentVolumeClaim:
+        claimName: pip-pvc
+  serviceAccountName: tekton-sa  # Add service account if necessary
+  #secrets:
+  #  - secretName: docker-secret
