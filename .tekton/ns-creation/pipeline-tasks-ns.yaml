@@ -1,0 +1,51 @@
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: manage-namespace
+spec:
+  params:
+    - name: namespace
+      description: Name of the namespace 
+      type: string
+    - name: labels
+      description: Comma seperated key value pairs for labels
+      type: string   
+    - name: quota-cpu
+      type: string
+    - name: quota-memory
+      type: string
+  steps:      
+    - name: create-namespace
+      image: bitnami/kubectl:latest
+      script: |
+        #!/bin/bash
+        pwd
+        echo "Creating namespace: $(inputs.params.namespace)"
+        kubectl create namespace $(inputs.params.namespace) --dry-run=client -o yaml | kubectl apply -f -
+        echo "Namespace created..."
+        echo "Adding labels: $(inputs.params.labels)"
+        IFS=',' read -ra lbl_arr <<< "$(inputs.params.labels)"
+        for lbl in "${lbl_arr[@]}"; do
+          echo "Applying label: $lbl"
+          kubectl label namespace $(inputs.params.namespace) $lbl --overwrite
+        done
+    - name: apply-quota
+      image: bitnami/kubectl:latest
+      script: |
+        #!/bin/bash
+        echo "Applying resource quota to namespace: $(inputs.params.namespace)"
+        cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: ResourceQuota
+          metadata:
+            name: namespace-quota
+            namespace: $(inputs.params.namespace)
+          spec:
+            hard:
+              requests.cpu: "$(inputs.params.quota-cpu)"
+              requests.memory: "$(inputs.params.quota-memory)"
+              limits.cpu: "$(inputs.params.quota-cpu)"
+              limits.memory: "$(inputs.params.quota-memory)"
+        EOF             
+

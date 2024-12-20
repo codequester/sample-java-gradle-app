@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: pip-ns
+spec:
+  tasks:
+    - name: manage-namespace
+      taskRef:
+        name: manage-namespace
+      params:
+        - name: namespace
+          value: "example-ns"   
+        - name: labels
+          value: "env=dev,team=ocp"  
+        - name: quota-cpu
+          value: "2"
+        - name: quota-memory
+          value: "2Gi"                    
