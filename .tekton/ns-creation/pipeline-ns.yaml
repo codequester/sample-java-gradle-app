@@ -1,18 +1,70 @@
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: pip-ns
+  name: pip-create-ns
 spec:
+  params:
+    - name: namespace
+      description: Name of the namespace
+      type: string
+    - name: labels
+      description: Comma seperated key value pairs for labels
+      type: string
+      default: "app-id=ocp"
+    - name: requests-cpu
+      description: Total CPU that can be requested by all pods
+      type: string
+      default: "5"
+    - name: requests-memory
+      description: Total Memory that can be requested by all pods
+      type: string
+      default: "10Gi"
+    - name: limits-cpu
+      description: Total CPU Limit for all pods
+      type: string
+      default: "10"
+    - name: limits-memory
+      description: Total Memory Limit for pods
+      type: string
+      default: "20Gi"
+    - name: pod-count
+      description: Total no. of PODs
+      type: string
+      default: "10"
   tasks:
-    - name: manage-namespace
+    - name: create-namespace
       taskRef:
-        name: manage-namespace
+        name: create-namespace
       params:
         - name: namespace
-          value: "example-ns"   
+          value: "$(params.namespace)"
         - name: labels
-          value: "env=dev,team=ocp"  
-        - name: quota-cpu
-          value: "2"
-        - name: quota-memory
-          value: "2Gi"                    
+          value: "$(params.labels)"
+        - name: requests-cpu
+          value: "$(params.requests-cpu)"
+        - name: requests-memory
+          value: "$(params.requests-memory)"
+        - name: limits-cpu
+          value: "$(params.limits-cpu)"
+        - name: limits-memory
+          value: "$(params.limits-memory)"
+        - name: pod-count
+          value: "$(params.pod-count)"
+
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: pip-delete-ns
+spec:
+  params:
+    - name: namespace
+      description: Name of the namespace
+      type: string
+  tasks:
+    - name: delete-namespace
+      taskRef:
+        name: delete-namespace
+      params:
+        - name: namespace
+          value: "$(params.namespace)"

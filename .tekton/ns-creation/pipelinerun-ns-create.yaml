@@ -1,0 +1,16 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: pr-ns-create
+spec:
+  pipelineRef:
+    name: pip-create-ns
+  params:
+    - name: namespace
+      value: "example-ns"
+    - name: labels
+      value: "app-id=ocp,env=dev"
+    - name: pod-count
+      value: "5"      
+  serviceAccountName: ns-tekton-sa

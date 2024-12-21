@@ -1,8 +1,12 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: pr-ns
+  name: pr-ns-delete
 spec:
   pipelineRef:
-    name: pip-ns
+    name: pip-delete-ns
+  params:
+    - name: namespace
+      value: "example-ns"
   serviceAccountName: ns-tekton-sa

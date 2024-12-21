@@ -10,20 +10,11 @@ metadata:
   name: ns-pipeline-role
 rules:
 - apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "create", "update", "patch"]
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["get", "create", "update", "patch"]
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "create", "update", "patch", "list"] 
-- apiGroups: [""]
   resources: ["namespaces"]
-  verbs: ["get", "create", "update", "patch", "list"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: [""]
   resources: ["resourcequotas"]
-  verbs: ["create", "get", "list", "watch"]    
+  verbs: ["get", "list", "create", "update", "patch", "delete"]    
 
 ---
 

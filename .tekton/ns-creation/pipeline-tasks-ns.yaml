@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: manage-namespace
+  name: create-namespace
 spec:
   params:
     - name: namespace
@@ -10,20 +10,31 @@ spec:
       type: string
     - name: labels
       description: Comma seperated key value pairs for labels
-      type: string   
-    - name: quota-cpu
       type: string
-    - name: quota-memory
+    - name: requests-cpu
+      description: Total CPU that can be requested by all pods    
+      type: string
+    - name: requests-memory
+      description: Total Memory that can be requested by all pods 
+      type: string
+    - name: limits-cpu
+      description: Total CPU Limit for all pods    
+      type: string
+    - name: limits-memory
+      description: Total Memory Limit for pods 
+      type: string
+    - name: pod-count
+      description: Total no. of PODs 
       type: string
   steps:      
-    - name: create-namespace
+    - name: create-ns
       image: bitnami/kubectl:latest
       script: |
         #!/bin/bash
         pwd
         echo "Creating namespace: $(inputs.params.namespace)"
         kubectl create namespace $(inputs.params.namespace) --dry-run=client -o yaml | kubectl apply -f -
-        echo "Namespace created..."
+        echo "Namespace created!"
         echo "Adding labels: $(inputs.params.labels)"
         IFS=',' read -ra lbl_arr <<< "$(inputs.params.labels)"
         for lbl in "${lbl_arr[@]}"; do
@@ -43,9 +54,29 @@ spec:
             namespace: $(inputs.params.namespace)
           spec:
             hard:
-              requests.cpu: "$(inputs.params.quota-cpu)"
-              requests.memory: "$(inputs.params.quota-memory)"
-              limits.cpu: "$(inputs.params.quota-cpu)"
-              limits.memory: "$(inputs.params.quota-memory)"
+              requests.cpu: "$(inputs.params.requests-cpu)"
+              requests.memory: "$(inputs.params.requests-memory)"
+              limits.cpu: "$(inputs.params.limits-cpu)"
+              limits.memory: "$(inputs.params.limits-memory)"
+              pods: "$(inputs.params.pod-count)"
         EOF             
 
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: delete-namespace
+spec:
+  params:
+    - name: namespace
+      description: Name of the namespace 
+      type: string
+  steps:      
+    - name: delete-ns
+      image: bitnami/kubectl:latest
+      script: |
+        #!/bin/bash
+        pwd
+        echo "Deleting namespace: $(inputs.params.namespace)"
+        kubectl delete namespace $(inputs.params.namespace) 
+        echo "Namespace Deleted!"
