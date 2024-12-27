@@ -8,7 +8,7 @@ spec:
   - http:
       paths:
       - pathType: Prefix
-        path: /sample
+        path: /sample-app
         backend:
           service:
             name: {{ .Chart.Name }}-service
