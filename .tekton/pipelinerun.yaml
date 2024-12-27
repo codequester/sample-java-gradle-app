@@ -4,7 +4,12 @@ metadata:
   name: app-pr
 spec:
   pipelineRef:
-    name: app-pl   
+    name: app-pl
+  params:
+    - name: git-url
+      value: "https://github.com/codequester/sample-java-gradle-app.git"
+    - name: branch
+      value: "main"   
   workspaces:
     - name: output
       persistentVolumeClaim:

@@ -5,14 +5,15 @@ kind: Task
 metadata:
   name: git-clone
 spec:
-  # params:
-  #   - name: url
-  #     description: git url
-  #     type: string
-  #   - name: branch
-  #     description: git branch
-  #     type: string
-  #     default: main 
+  workspaces:
+    - name: appsrc
+  params:
+    - name: url
+      description: git url
+      type: string
+    - name: branch
+      description: git branch
+      type: string
   steps:
     - name: clone
       image: alpine/git
@@ -21,12 +22,10 @@ spec:
         #!/bin/sh
         rm -rfv ./*
         rm -rf .*
-        git clone $(inputs.params.url) $(workspaces.appsrc.path)
+        git clone --branch $(inputs.params.branch) $(inputs.params.url) $(workspaces.appsrc.path)
         pwd
         ls -al
-      workingDir: $(workspaces.appsrc.path)
-  workspaces:
-    - name: appsrc        
+      workingDir: $(workspaces.appsrc.path)        
 
 ---
 # Task 2: Gradle Build Task
@@ -57,12 +56,12 @@ spec:
       # command:
       #   - "./gradlew"
       #   - "build"  # Command to build the application
-      volumeMounts:
-        - name: build-vol
-          mountPath: /home/gradle
-  volumes:
-    - name: build-vol
-      emptyDir: {}
+      #volumeMounts:
+      #  - name: build-vol
+      #    mountPath: /home/gradle
+  #volumes:
+  #  - name: build-vol
+  #    emptyDir: {}
 
 ---
 # Task 3: Docker Build Task
@@ -71,6 +70,8 @@ kind: Task
 metadata:
   name: buildah
 spec:
+  workspaces:
+    - name: source
   params:
     - name: IMAGE
       description: Reference of the image buildah will produce.
@@ -84,8 +85,6 @@ spec:
     - name: IMAGE_PUSH_SECRET_NAME
       description: Kubernetes secrets contain image push username and password
       default: reg-secret
-  workspaces:
-    - name: source
   steps:
     - name: build
       image: quay.io/buildah/stable:v1.38.0

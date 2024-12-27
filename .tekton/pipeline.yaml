@@ -7,6 +7,11 @@ metadata:
 spec:
   workspaces:
     - name: output #shared-data  # Shared workspace for passing artifacts between tasks
+  params:
+    - name: git-url
+      description: The git url to clone from
+    - name: branch
+      description: The branch name to clone from    
   tasks:
     # Task 1: Checkout code from GitHub
     - name: git-clone
@@ -14,7 +19,9 @@ spec:
         name: git-clone
       params:
         - name: url
-          value: "https://github.com/codequester/sample-java-gradle-app.git"
+          value: "$(params.git-url)"
+        - name: branch
+          value: $(params.branch)
       workspaces:
         - name: appsrc
           workspace: output
