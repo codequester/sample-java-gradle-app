@@ -22,6 +22,7 @@ kubectl create secret docker-registry docker-secret --docker-server=$DOCKER_REGI
 
 # The secret below again contains docker registry but the above secret can be re-used
 # secrets-reg-creds.yaml will be in local macine as it contains the encoded creds
+# Note: use echo -n <secret value> | base64 to remove the new line that gets generated automatically with echo
 kubectl apply -f ./.tekton/secrets-reg-creds.yaml
 
 kubectl apply -f ./.tekton/pipeline-storage.yaml
