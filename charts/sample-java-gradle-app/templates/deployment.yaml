@@ -11,7 +11,9 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name }}      
+        app: {{ .Chart.Name }}
+      annotations:
+        installedOn: {{ dateInZone "2006-01-02 15:04:05Z" (now) "UTC"| quote }}      
     spec:
       containers:
         - name: app
